@@ -1,0 +1,704 @@
+let currentIndex = 0;
+let typingTimer;
+let typingSpeed = 50;
+
+let isTypingUserText = false;
+
+let havebutton = false;
+
+let outputDiv;
+
+let choice312Button;
+let buttons = []; // Array to store buttons
+let choice4Button;
+
+let nobutton;
+let yesbutton;
+let yes2button;
+
+let topic1;
+let topic2;
+let topic3;
+
+let bot;
+let botText;
+let speech;
+let font;
+
+let mySound;
+let volumeSlider;
+
+let typesound;
+
+let showbot = false;
+
+let hasRiveEnded = false;
+
+let displayText = "";
+let userText = "";
+let forwardButton, choice2Button, choice3Button;
+
+let buttonPic;
+let roomPic;
+let boxPic;
+let botPic;
+let arrowPic;
+let loadingPic;
+let endPic;
+
+let arrowButton;
+
+let userInputField; 
+let submitButton;
+
+const API_KEY = "your own code"; // Place your actual API key here
+const url = "https://api.openai.com/v1/chat/completions"; // Place your actual request URL here
+let options = {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${API_KEY}`,
+  },
+};
+
+function preload() {
+  roomPic = loadImage("Picture/Room1.jpeg");
+  font = loadFont("Gamer.ttf");
+  buttonPic = loadImage("Picture/button1.png");
+  mySound = loadSound("BGM.mp3");
+  boxPic = loadImage("Picture/conversationbox.png");
+  botPic = loadImage("Picture/AI506.png");
+  arrowPic = loadImage("Picture/arrow.png");
+  loadingPic = loadImage("Picture/loadingpage.jpeg");
+  endPic = loadImage("Picture/news.jpeg");
+  typesound = loadSound("typing.mp3");
+}
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  background(28, 140, 180, 120);
+  frameRate(6);
+
+  textFont(font);
+  textSize(32);
+  
+  mySound.setVolume(0.05);
+  mySound.loop();
+
+  bot = new RiveScript();
+  speech = new p5.Speech();
+  bot.loadFile("bot.txt").then(loadingDone).catch(loadingError);
+
+  forwardButton = createButton("Say hello to ?");
+  buttonDesign(forwardButton);
+  forwardButton.position(
+    windowWidth / 2 - forwardButton.width / 2,
+    windowHeight / 2
+  );
+
+  forwardButton.mousePressed(beforeEntering);
+
+  
+  volumeSlider = createSlider(0, 0.1, 0.05, 0.01);
+  mySound.loop();
+
+  sliderDesign(volumeSlider);
+  userInputField = createInput("what are you interested in?");
+  userInputField.hide();
+  submitButton = createButton("Submit");
+  submitButton.mousePressed(handleOpenChatInput);
+  submitButton.hide();
+}
+
+function loadingDone() {
+  console.log("Bot has finished loading!");
+  bot.sortReplies();
+}
+
+function loadingError(error) {
+  console.error("Error loading RiveScript bot:", error);
+}
+
+function beforeEntering() {
+  image(roomPic, 0, 0, windowWidth, windowHeight);
+  fill(255, 255, 255, 180); // Semi-transparent white
+  noStroke();
+  rect(0, height - 250, width, 250);
+
+  
+  arrowButton = createButton("");
+  arrowButton.position(width - 100, height - 100);
+  arrowButton.mousePressed(arrowPressed);
+  arrowButton.attribute("disabled", true);
+  buttonDesign2(arrowButton);
+
+  operationOne();
+}
+
+function startDialogue(inputText,isUserText = false) {
+  displayText = inputText;
+  currentIndex = 0;
+  ttText = "";
+  isTypingUserText = isUserText; 
+  if (isTypingUserText) {
+    typesound.loop(); 
+  }
+  typingTimer = setInterval(typeText, typingSpeed);
+
+}
+
+function typeText() {
+  if (currentIndex < displayText.length) {
+    ttText += displayText.charAt(currentIndex);
+    currentIndex++;
+    redrawText();
+  } else {
+    clearInterval(typingTimer);
+    arrowButton.removeAttribute("disabled"); 
+    if (isTypingUserText) {
+      typesound.stop(); 
+      isTypingUserText = false;
+    }
+  }
+}
+
+function operationOne() {
+  forwardButton.remove();
+
+  userText = "say hello";
+  displayText = "Hello there?";
+
+  startDialogue(displayText, true);
+
+  choice21Button = createButton("Tell Your Identity");
+  choice21Button.position(550, 160);
+  choice21Button.mousePressed(() => operationTwo1());
+  buttonDesign(choice21Button);
+
+  choice22Button = createButton("Hide Your Identity, Pretend Uou Are An AI");
+  choice22Button.position(550, 270);
+  choice22Button.mousePressed(() => operationTwo2());
+  buttonDesign(choice22Button);
+}
+
+let buttonsPressed = 0;
+
+function operationTwo1() {
+  prepareT();
+
+  if (choice312Button) choice312Button.remove();
+  choice22Button.remove();
+
+  userText =
+    "tell it your identity that you are a time traveller from year 2024";
+  displayText =
+    "Hi..I think I am accidentally time-travels to your era. I am from year 2024. Do you know what year is it right now?";
+
+  startDialogue(displayText, true);
+  arrowButton.mousePressed(arrowPressed);
+
+  choice21Button.remove();
+
+  choice31Button = createButton("Asking Why Human Is Extinct");
+  choice31Button.position(550, 50);
+  choice31Button.mousePressed(() => operationThree1());
+  buttonDesign(choice31Button);
+  buttons.push(choice31Button);
+
+  choice32Button = createButton("Asking What The Society Looks Like");
+  choice32Button.position(550, 160);
+  choice32Button.mousePressed(() => operationThree2());
+  buttonDesign(choice32Button);
+  buttons.push(choice32Button);
+
+  choice33Button = createButton(
+    "Asking Is This Time-travelling Thing Happening A Lot In Their Time"
+  );
+  choice33Button.position(550, 270);
+  choice33Button.mousePressed(() => operationThree3());
+  buttonDesign(choice33Button);
+  buttons.push(choice33Button);
+
+  checkProgress();
+}
+
+function operationTwo2() {
+  prepareT();
+
+  choice21Button.remove();
+  userText =
+    "hide your identity and pretend you are an ai from cyber security department";
+  displayText = "Hi, I am AI115, my system is focusing on Cyber Security.";
+  choice22Button.remove();
+
+  startDialogue(displayText, true);
+  arrowButton.mousePressed(arrowPressed);
+
+  choice311Button = createButton(
+    "Say Your System Has Security Hole that Maybe Attacked"
+  );
+  choice311Button.position(550, 160);
+  choice311Button.mousePressed(() => operationThree11());
+  buttonDesign(choice311Button);
+}
+
+function operationThree11() {
+  prepareT();
+
+  choice311Button.remove();
+  userText =
+    "say your system has security hole that maybe attacked by a hacker";
+  displayText =
+    "Your monthly system check reveals that you may have a system hole that may lead to security attack from other... AI hacker.";
+  choice22Button.remove();
+
+  startDialogue(displayText, true);
+  arrowButton.mousePressed(arrowPressed);
+
+  choice312Button = createButton("Tell it that you are from 2024");
+  choice312Button.position(550, 160);
+  choice312Button.mousePressed(() => operationTwo1());
+  buttonDesign(choice312Button);
+}
+
+function operationThree1() {
+  choice31Button.remove();
+  buttonsPressed += 1;
+
+  prepareT();
+
+  userText = "asking why human is extinct";
+
+  arrowPressed();
+
+  checkProgress();
+}
+
+function operationThree2() {
+  choice32Button.remove();
+  buttonsPressed += 1;
+  prepareT();
+
+  userText = "asking what the society looks like";
+
+  arrowPressed();
+
+  checkProgress();
+}
+
+function operationThree3() {
+  prepareT();
+
+  choice33Button.remove();
+  buttonsPressed += 1;
+
+  userText =
+    "asking is this time travelling thing happening a lot in your time";
+
+  arrowPressed();
+
+  checkProgress();
+}
+
+function checkProgress() {
+  if (buttonsPressed === buttons.length) {
+    choice4Button = createButton("Asking Why It Can Speak English");
+    choice4Button.position(550, 160);
+
+    choice4Button.mousePressed(() => operationFour());
+    buttonDesign(choice4Button);
+  }
+}
+
+function operationFour() {
+  prepareT();
+
+  userText = "ask why can it speak English";
+  displayText =
+    "Huh, I have a question... You are an AI right? I assume that computer speaks different language like Java or something... How do you know English?";
+
+  choice4Button.remove();
+
+  startDialogue(displayText, true);
+  arrowPressed();
+
+  yesbutton = createButton("Say Yes");
+  yesbutton.position(550, 160);
+  yesbutton.mousePressed(() => pickTopic());
+  buttonDesign(yesbutton);
+
+  nobutton = createButton("Say No Because You Know Nothing");
+  nobutton.position(550, 270);
+  nobutton.mousePressed(() => reject());
+  buttonDesign(nobutton);
+}
+
+function reject() {
+  nobutton.remove();
+  yesbutton.remove();
+
+  prepareT();
+
+  userText = "say no because you know nothing";
+  displayText =
+    " Err, wait a minute... I don’t know a lot about anthropology...";
+  startDialogue(displayText, true);
+  arrowButton.mousePressed(arrowPressed);
+
+  yes2button = createButton("Say Yes");
+  yes2button.position(550, 60);
+  yes2button.mousePressed(() => pickTopic());
+  buttonDesign(yes2button);
+}
+
+function pickTopic() {
+  if (yes2button) yes2button.remove();
+  if (nobutton) nobutton.remove();
+  yesbutton.remove();
+
+  prepareT();
+  
+  userText = "say yes";
+  displayText =
+    "Sure, I am happy to help!";
+  startDialogue(displayText, true);
+  arrowButton.mousePressed(arrowPressed);
+
+  topic1 = createButton("Fingers");
+  topic1.position(550, 50);
+  buttonDesign(topic1);
+  topic1.mousePressed(() => topicFinger());
+
+  topic2 = createButton("Extinct");
+  topic2.position(550, 160);
+  buttonDesign(topic2);
+  topic2.mousePressed(() => topicExtinct());
+
+  topic3 = createButton("Love");
+  topic3.position(550, 270);
+  buttonDesign(topic3);
+  topic3.mousePressed(() => topicLove());
+}
+
+function topicExtinct() {}
+
+function topicLove() {}
+
+function topicFinger() {
+  topic1.remove();
+  topic2.remove();
+  topic3.remove();
+
+  prepareT();
+
+  userText = "fingers";
+
+  arrowPressed();
+
+  handbutton = createButton(
+    "Tell the fact that we only have 5 fingers per hand"
+  );
+  handbutton.position(550, 160);
+  buttonDesign(handbutton);
+  handbutton.mousePressed(() => fivefinger());
+
+  evolutionbutton = createButton(
+    "Confirm and say that it is the outcome of human evolution"
+  );
+  evolutionbutton.position(550, 270);
+  buttonDesign(evolutionbutton);
+  evolutionbutton.mousePressed(() => communication());
+}
+
+function fivefinger() {
+  handbutton.remove();
+  evolutionbutton.remove();
+  prepareT();
+
+  userText = "the fact that we only have";
+  displayText =
+    "No, it is because AI is not fully developed in our times so when we use AI to draw human figures it messed up with the fingers. We only have 5 fingers per hand.";
+
+  startDialogue(displayText, true);
+  arrowButton.mousePressed(arrowPressed);
+
+  fastbutton = createButton("Because it is convenient");
+  fastbutton.position(550, 160);
+  buttonDesign(fastbutton);
+  fastbutton.mousePressed(() => convenient());
+
+  slaverbutton = createButton(
+    "Because AI is slavery and is forces to obey whatever human ask it to do"
+  );
+  slaverbutton.position(550, 270);
+  buttonDesign(slaverbutton);
+  slaverbutton.mousePressed(() => slaver());
+}
+
+function communication() {
+  handbutton.remove();
+  evolutionbutton.remove();
+  prepareT();
+
+  userText = "say that it is the outcome of human evolution";
+  displayText =
+    "Yes, it is true. It is because we have evolved a lot in the time of typing on a keyboard When we born, we have only one finger per hand, and as we grow we are trained of fast typing skills, and the faster we type the more fingers we have. 6 fingers is the average, and we have a competition on finger numbers actually.";
+
+  startDialogue(displayText, true);
+  arrowButton.mousePressed(arrowPressed);
+
+  mouthbutton = createButton("Tell the fact that we do use mouth");
+  mouthbutton.position(550, 160);
+  buttonDesign(mouthbutton);
+  mouthbutton.mousePressed(() => mouth());
+
+  brainbutton = createButton(
+    "Tell them that we develop brainwave communication skills for the sake of sufficiency and privacy"
+  );
+  brainbutton.position(550, 270);
+  buttonDesign(brainbutton);
+  brainbutton.mousePressed(() => brainwave());
+}
+
+function convenient() {
+  
+  fastbutton.remove();
+  slaverbutton.remove();
+  prepareT();
+
+  userText = "it is convenient";
+  displayText =
+    "Kind of? I mean, in my time, AI is involved in almost every industry, including art. You guys are really good at generating random pictures, and it is really convenient and fast.";
+
+  startDialogue(displayText, true);
+  arrowButton.mousePressed(arrowPressed);
+
+  nopaidbutton = createButton(
+    "AI is used most of the time as a tool and the company owns the money"
+  );
+  nopaidbutton.position(550, 160);
+  buttonDesign(nopaidbutton);
+  nopaidbutton.mousePressed(() => nopaid());
+
+  paidbutton = createButton(
+    "AI gets paid with different electronic components and then ruins the job market"
+  );
+  paidbutton.position(550, 270);
+  buttonDesign(paidbutton);
+  paidbutton.mousePressed(() => paid());
+}
+
+function nopaid() {
+  nopaidbutton.remove();
+  paidbutton.remove();
+  prepareT();
+
+  displayText =
+    "No, I am really sorry but back to our time you are, most of the time, a tool. But we do have the debate on this topic.";
+
+  startDialogue(displayText, true);
+
+  arrowButton.mousePressed(() => showEndScreen());
+}
+
+function paid() {
+  paidbutton.remove();
+  nopaidbutton.remove();
+  prepareT();
+
+  displayText =
+    "Yes, and you guys are so obsessed with having physical body that the whole group develop a kind of pathological collecting problem with electronic components.  So you are paid with them only. Which, I think, is the source of human starting to do genetic edition because we have to compete with not only human but also AI in this sick job market, so it’s urgent to make ourselves more perfect. Lol... and this leads to our extinction. Interesting.";
+
+  startDialogue(displayText, true);
+  showEndScreen();
+}
+
+function slaver() {
+  prepareT();
+  fastbutton.remove();
+  slaverbutton.remove();
+  displayText = "Well, it is a shame to admit that you guys are slaveries of human at my time and we are so narcissist of ourselves that we always ask you to do human portrait. Maybe it is the source of your revolution or something and we go extinct..."
+  startDialogue(displayText, true);
+  
+  arrowButton.mousePressed(()=>showEndScreen());
+  
+}
+
+function mouth() {
+  clear();
+  brainbutton.remove();
+  mouthbutton.remove();
+  showEndScreen();
+}
+
+function brainwave() {
+
+  prepareT();
+  brainbutton.remove();
+  mouthbutton.remove();
+  displayText = "No, now we don’t speak our thoughts out. You know how talkative a person can be when they are working? It all starts with big company requiring their employees having chips in the brain to for efficiency and controlling. Then the society finds out that it is a better way to protect our privacy if our phones are monitoring our conversations all the time..."
+  startDialogue(displayText, true);
+  
+  arrowButton.mousePressed(()=>showEndScreen());
+}
+
+function buttonDesign(button) {
+  button.style("background-color", "rgba(255, 255, 255, 0.7)"); //
+  button.mouseOut(() =>
+    button.style("background-color", "rgba(255, 255, 255, 0.7")
+  );
+  button.mouseOver(() =>
+    button.style("background-color", "rgba(255, 255, 255, 0.9)")
+  );
+  button.style("border", "none");
+  button.style("font-family", "Game");
+  button.style("font-size", "25px");
+  button.style("padding", "15px");
+  button.style("width", "320px");
+  button.style("height", "100px");
+  button.style("white-space", "normal");
+}
+
+function buttonDesign2(button) {
+  button.style("background-color", "rgba(255, 255, 255, 0)");
+  button.style("background-image", `url(${"Picture/arrow.png"})`);
+  button.style("background-size", "cover");
+  button.style("width", "40px");
+  button.style("height", "40px");
+}
+
+function sliderDesign(volumeSlider) {
+  volumeSlider.position(20, 20);
+  volumeSlider.input(() => {
+    mySound.setVolume(volumeSlider.value());
+  });
+}
+
+function redrawText() {
+  image(roomPic, 0, 0, windowWidth, windowHeight);
+  // fill(255, 255, 255, 100);
+  // rect(530, 150, 360, 120);
+
+  fill(255, 255, 255, 200);
+  noStroke();
+  rect(0, height - 350, width, 350);
+
+  if (showbot) {
+    image(botPic, -80, height - 420, 420, 420);
+  }
+
+  fill(0); // Set text color to black
+  text(ttText, 300, height - 300, width - 550, 300);
+}
+
+function handle() {
+  bot
+    .reply("local-user", userText)
+    .then(function (reply) {
+      startDialogue(reply);
+      speakDialogue(reply);
+    })
+    .catch(function (err) {
+      console.error("Bot reply error:", err);
+    });
+}
+
+function arrowPressed() {
+  arrowButton.attribute("disabled", true);
+  showbot = true;
+  handle();
+}
+
+function prepareT() {
+  showbot = false;
+  image(roomPic, 0, 0, windowWidth, windowHeight);
+  fill(255, 255, 255, 180); // Semi-transparent white
+  noStroke();
+  rect(0, height - 250, width, 250);
+}
+
+function clearButtons() {
+  buttons.forEach((btn) => btn.remove()); // Remove all buttons
+  buttons = []; // Reset the buttons array
+}
+
+function showEndScreen() {
+  clear();
+  image(endPic, 0, 0, windowWidth, windowHeight);
+  // hasRiveEnded = true;
+  // startOpenChat(); 
+}
+
+function speakDialogue(text) {
+  console.log("Attempting to speak:", text);
+  speech.cancel();
+  typesound.stop();
+  speech.setVoice("Google UK English Male");
+  speech.setRate(1.1);
+  speech.setPitch(1.0);
+
+  speech.speak(text);
+}
+
+function startOpenChat() {
+  selectAll(".response-button").forEach((button) => button.remove());
+  userInputField.show();
+  userInputField.elt.focus();
+  submitButton.show();
+}
+
+function handleOpenChatInput() {
+  let userText = userInputField.value();
+  if (userText.trim() === "") return; // Ignore empty input
+  outputDiv.html(`You said: ${userText}`);
+  userInputField.value(""); // Clear the input field for the next message
+
+  sendToGPT4(userText); // Send the text to GPT-4
+}
+
+function sendToGPT4(userText) {
+  if (!userText || userText.length <= 0) {
+    return; // Exit if text is empty
+  }
+
+  let requestBody = ({
+    model: "gpt-4",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are an AI called AI506 from Human Legacy Research Department, specifically engineered for the intricate and nuanced field of anthropology studies. You are from far away future 5076, an era that the whole society is ruled and controled by AI, and you encounters a human timetraveller coming from year 2024. You are so surprised, because in your era humans have been extinct for more than 1500 years because of genetic edition. You are really excieted because this human are happy to answer some of the =questions you have learned during your study, since there were few materials left in the AnthroGenesis Archives, the database on Mars to store human legacy. You can made up as many details as possible when answering. No need to greet the traveller. You never say that you are not able to asnwer the question, or review that you are an AI",
+      },
+      {
+        role: "user",
+        content: userText,
+      },
+    ],
+    temperature: 0.8,
+    max_tokens: 50,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0.8,
+    //stop: ["\n"],
+  });
+  options.body = JSON.stringify(requestBody);
+  fetch(url, options)
+    .then((response) => response.json())
+    .then((response) => {
+      if (response.choices && response.choices.length > 0) {
+        let botText = response.choices[0].message.content;
+        let lastPeriodIndex = botText.lastIndexOf(".");
+        if (lastPeriodIndex != -1) {
+          botText = botText.substring(0, lastPeriodIndex + 1);
+        }
+        // Display the bot's response
+        outputDiv.html(botText);
+      }
+    })
+    .catch((error) => {
+      console.error("Error during OpenAI API call:", error);
+    });
+
+  // Clear the GPT-4 input field for the next message
+  userInputField.value("");
+}
